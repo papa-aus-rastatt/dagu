@@ -1552,6 +1552,30 @@ describe('LicensePage', () => {
       ).toBeVisible();
     });
 
+    // A remote node on an older Dagu can still report at runs, which sends
+    // run status without error messages.
+    it('shows what a node still at runs reports', async () => {
+      const until = new Date(Date.now() + 3 * 60 * 60_000);
+      serveMonitoring({
+        level: LicenseMonitoringLevel.runs,
+        configured: false,
+        chosen: true,
+        noticeDismissed: false,
+        lastReportAt: new Date().toISOString(),
+        runsPausedUntil: until.toISOString(),
+      });
+      const card = await findMonitoringCard();
+
+      expect(
+        await within(card).findByText('Health and run status')
+      ).toBeVisible();
+      expect(
+        within(card).getByText(
+          `Run history paused until ${dayjs(until).format('YYYY-MM-DD HH:mm')}`
+        )
+      ).toBeVisible();
+    });
+
     it('does not mention a pause that has ended', async () => {
       serveMonitoring({
         level: LicenseMonitoringLevel.errors,

@@ -2780,6 +2780,7 @@ const baseEnglish = {
   Reports: 'Reports',
   'Last report': 'Last report',
   'Health only': 'Health only',
+  'Health and run status': 'Health and run status',
   'cloud.report in the server configuration sets this. Change it there and restart Dagu.':
     'cloud.report in the server configuration sets this. Change it there and restart Dagu.',
   Change: 'Change',
@@ -6036,6 +6037,7 @@ const baseChinese = {
   Reports: '报告内容',
   'Last report': '最近报告',
   'Health only': '仅健康状态',
+  'Health and run status': '健康状态和运行状态',
   'cloud.report in the server configuration sets this. Change it there and restart Dagu.':
     '此设置由服务器配置中的 cloud.report 决定。请在配置中修改并重启 Dagu。',
   Change: '更改',
@@ -9366,6 +9368,7 @@ const baseJapanese = {
   Reports: '報告内容',
   'Last report': '最終報告',
   'Health only': 'ヘルスのみ',
+  'Health and run status': 'ヘルスと実行状況',
   'cloud.report in the server configuration sets this. Change it there and restart Dagu.':
     'サーバー設定の cloud.report で指定されています。変更するには設定を編集して Dagu を再起動してください。',
   Change: '変更',

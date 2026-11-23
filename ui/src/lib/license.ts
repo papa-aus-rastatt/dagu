@@ -125,8 +125,8 @@ export const remoteAccessLevelLabels: Record<LicenseRemoteAccessLevel, string> =
 export const monitoringLevelLabels: Record<LicenseMonitoringLevel, string> = {
   [LicenseMonitoringLevel.off]: 'Off',
   [LicenseMonitoringLevel.health]: 'Health only',
-  // The server reads runs as errors, so it never reports runs.
-  [LicenseMonitoringLevel.runs]: 'Health, run status, and error messages',
+  // A remote node on an older Dagu can still report at runs.
+  [LicenseMonitoringLevel.runs]: 'Health and run status',
   [LicenseMonitoringLevel.errors]: 'Health, run status, and error messages',
 };
 
