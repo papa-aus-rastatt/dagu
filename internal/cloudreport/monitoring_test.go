@@ -111,7 +111,7 @@ func TestMonitoringConfigured(t *testing.T) {
 
 // A choice is announced before the next one is saved, so a late
 // announcement cannot undo a later choice, such as an off cancelling a
-// report that a later runs allowed.
+// report that a later errors allowed.
 func TestMonitoringAnnouncesInSaveOrder(t *testing.T) {
 	t.Parallel()
 
@@ -137,7 +137,7 @@ func TestMonitoringAnnouncesInSaveOrder(t *testing.T) {
 	go func() { second <- m.SetLevel(t.Context(), config.ReportErrors) }()
 	select {
 	case err := <-second:
-		t.Fatalf("runs was chosen while off was still being announced: %v", err)
+		t.Fatalf("errors was chosen while off was still being announced: %v", err)
 	case <-time.After(100 * time.Millisecond):
 	}
 	close(release)
@@ -211,10 +211,10 @@ func TestLastReportOnlyWhenAccepted(t *testing.T) {
 }
 
 // The reporter follows the level an administrator chooses. Off sends
-// nothing. Health sends no runs and leaves the events lease to others. Runs
-// sends the runs in progress and those that finish once it is chosen, never
-// those that finished before, even after a period below runs. Off again
-// stops at once, and sends only one report saying so.
+// nothing. Health sends no runs and leaves the events lease to others.
+// Errors sends the runs in progress and those that finish once it is chosen,
+// never those that finished before, even after a period below errors. Off
+// again stops at once, and sends only one report saying so.
 func TestReportFollowsLevel(t *testing.T) {
 	t.Parallel()
 
@@ -245,7 +245,7 @@ func TestReportFollowsLevel(t *testing.T) {
 
 	require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
 	chosen := nextReport(t, clock, console)
-	assert.Equal(t, finishedReport{}, decodeFinished(t, chosen), "runs that finished before runs was chosen are left out")
+	assert.Equal(t, finishedReport{}, decodeFinished(t, chosen), "runs that finished before errors was chosen are left out")
 	assert.Equal(t, []string{"run-2"}, decodeActive(t, chosen).ids(t))
 	failed := etlRun(ir.Failed)
 	failed.AttemptID = "attempt-2"
@@ -276,22 +276,22 @@ func TestReportFollowsLevel(t *testing.T) {
 	assertLeaseFree(t, dir)
 }
 
-// A reporter that starts below runs, fixed by configuration or chosen before,
-// leaves out the runs that finished below runs once runs is chosen again: in
-// the same process, or at a restart at runs while the event store still holds
-// them. No gap is reported for them either, even after the event store has
-// removed them.
-func TestReportStartBelowRuns(t *testing.T) {
+// A reporter that starts below errors, fixed by configuration or chosen
+// before, leaves out the runs that finished below errors once errors is chosen
+// again: in the same process, or at a restart at errors while the event store
+// still holds them. No gap is reported for them either, even after the event
+// store has removed them.
+func TestReportStartBelowErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
-		// configured fixes the level below runs, and runs is chosen again by
-		// restarting at runs; otherwise chosen is the level, and runs is
+		// configured fixes the level below errors, and errors is chosen again
+		// by restarting at errors; otherwise chosen is the level, and errors is
 		// chosen in the same process.
 		configured config.ReportLevel
 		chosen     config.ReportLevel
-		// later is how long after the first start the restart at runs is.
+		// later is how long after the first start the restart at errors is.
 		later time.Duration
 	}{
 		{name: "configured health", configured: config.ReportHealth},
@@ -339,21 +339,22 @@ func TestReportStartBelowRuns(t *testing.T) {
 	}
 }
 
-// A reporter below runs while another process holds the events lease, as a
-// process that stopped at runs does for a while, leaves the saved position to
-// the next process that takes the lease, which discards it: at a restart at
-// runs, or in the same process once runs is chosen.
-func TestReportBelowRunsWithoutLease(t *testing.T) {
+// A reporter below errors while another process holds the events lease, as
+// a process that stopped at errors does for a while, leaves the saved
+// position to the next process that takes the lease, which discards it: at a
+// restart at errors, or in the same process once errors is chosen.
+func TestReportBelowErrorsWithoutLease(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
-		// configured fixes the level below runs, and runs is chosen again by
-		// restarting at runs; otherwise runs is chosen in the same process.
+		// configured fixes the level below errors, and errors is chosen again
+		// by restarting at errors; otherwise errors is chosen in the same
+		// process.
 		configured config.ReportLevel
 	}{
-		{name: "restart at runs", configured: config.ReportOff},
-		{name: "runs chosen"},
+		{name: "restart at errors", configured: config.ReportOff},
+		{name: "errors chosen"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

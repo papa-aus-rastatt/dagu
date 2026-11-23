@@ -130,9 +130,10 @@ func TestReportRuns(t *testing.T) {
 	assert.JSONEq(t, wantActive, decodeActive(t, next).json(t))
 }
 
-// A failed run carries why it failed: the errors of its failed steps without terminal escapes, each cut to its end, where
-// the error says what went wrong; or the run's own error when no step says.
-// A run that partly succeeded carries none.
+// A failed run carries why it failed: the errors of its failed steps without
+// terminal escapes, each cut to its end, where the error says what went
+// wrong; or the run's own error when no step says. A run that partly
+// succeeded carries none.
 func TestReportRunsWithErrors(t *testing.T) {
 	t.Parallel()
 

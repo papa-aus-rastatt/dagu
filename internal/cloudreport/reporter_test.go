@@ -277,8 +277,8 @@ func (s *fakeQueueStore) GetByItemID(context.Context, string, string) (queue.Que
 	return nil, queue.ErrQueueItemNotFound
 }
 
-// Reports at runs carry the queues; reports at health carry none.
-func TestReportCarriesQueuesAtRuns(t *testing.T) {
+// Reports at errors carry the queues; reports at health carry none.
+func TestReportCarriesQueuesAtErrors(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {

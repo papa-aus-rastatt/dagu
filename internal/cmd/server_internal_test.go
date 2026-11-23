@@ -146,7 +146,7 @@ func TestStartCloudReport(t *testing.T) {
 }
 
 // The event store and the run history are prepared at every level: an
-// administrator can choose runs at any time, and a reporter below runs
+// administrator can choose errors at any time, and a reporter below errors
 // discards where runs stopped being reported.
 func TestCloudReportEvents(t *testing.T) {
 	runs := persis.NewDAGRunRepository(nil, nil, persis.DAGRunRepositoryOptions{})

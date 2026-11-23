@@ -165,7 +165,7 @@ func TestSchedulesStayWithinTheirLimits(t *testing.T) {
 }
 
 // Every report says when it was built and how the scheduler is. Only a
-// report at runs, from the process that holds the event lease, lists the
+// report at errors, from the process that holds the event lease, lists the
 // schedules; an unreadable state leaves both out.
 func TestReportCarriesTheSchedules(t *testing.T) {
 	t.Parallel()
@@ -189,7 +189,7 @@ func TestReportCarriesTheSchedules(t *testing.T) {
 	}
 	both := Scheduler{State: fakeSchedulerState{state: state}, Pause: fakePause{paused: true}}
 
-	t.Run("runs", func(t *testing.T) {
+	t.Run("errors", func(t *testing.T) {
 		t.Parallel()
 		got := report(t, config.ReportErrors, true, both)
 		assert.NotEmpty(t, got.SentAt)

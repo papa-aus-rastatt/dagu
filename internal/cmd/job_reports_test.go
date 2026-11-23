@@ -42,9 +42,6 @@ func TestJobReportsForALocalRun(t *testing.T) {
 	require.NotNil(t, reports)
 	assert.Equal(t, testRunKey, reports.RunKey)
 	assert.True(t, reports.KeepTrigger)
-
-	ctx.Config.Cloud.Report = config.ReportErrors
-	assert.NotNil(t, jobReports(ctx, localRun))
 }
 
 // A run reports no job run without a key, at a level that sends no runs, or

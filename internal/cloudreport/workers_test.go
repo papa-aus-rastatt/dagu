@@ -61,7 +61,7 @@ func TestReportCarriesWorkers(t *testing.T) {
 		wantList  string
 		wantTotal string
 	}{
-		{"Runs", config.ReportErrors, coordinator, &stubWorkers{records: records}, false, list, "2"},
+		{"Errors", config.ReportErrors, coordinator, &stubWorkers{records: records}, false, list, "2"},
 		{"Health", config.ReportHealth, coordinator, &stubWorkers{records: records}, false, "", "2"},
 		{"NoWorkers", config.ReportErrors, coordinator, &stubWorkers{}, false, "[]", "0"},
 		{"FreeMonitoring", config.ReportErrors, coordinator, &stubWorkers{records: records}, true, "", ""},
