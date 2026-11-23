@@ -68,6 +68,33 @@ func TestMonitoringReadsRunsAsErrors(t *testing.T) {
 	assert.Equal(t, Status{Level: config.ReportErrors, Configured: true}, status, "runs configured")
 }
 
+// A choice saved as runs once kept error messages back, so each start warns
+// that they are sent until an administrator chooses again.
+func TestReportWarnsOfAChoiceSavedAsRuns(t *testing.T) {
+	t.Parallel()
+
+	console := newFakeConsole(t)
+	m := NewMonitoring("", &memoryStore{data: []byte(`{"level":"runs"}`)})
+	startLogs := func() string {
+		t.Helper()
+		var logs bytes.Buffer
+		ctx := logger.WithLogger(t.Context(), logger.NewLogger(
+			logger.WithFormat("text"),
+			logger.WithWriter(&logs),
+			logger.WithQuiet(),
+		))
+		r := newReporter(console.credentials, nil, m)
+		startReporter(ctx, t, r, noJitter).wait()
+		r.Stop()
+		return logs.String()
+	}
+
+	assert.Contains(t, startLogs(), warnSavedRuns)
+	assert.Contains(t, startLogs(), warnSavedRuns, "a restart warns again")
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
+	assert.NotContains(t, startLogs(), warnSavedRuns)
+}
+
 // A level set in configuration is fixed; the stored choice is never read, so
 // the store here is nil.
 func TestMonitoringConfigured(t *testing.T) {

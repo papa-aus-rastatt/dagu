@@ -55,7 +55,12 @@ const (
 	maxResponseSize = 1 << 20
 )
 
-const warnOff = "Failed to tell Dagu Console that this server no longer reports"
+const (
+	warnOff = "Failed to tell Dagu Console that this server no longer reports"
+	// warnSavedRuns tells an administrator who chose runs, which once kept
+	// error messages back, that it now sends them.
+	warnSavedRuns = "The saved choice runs now also sends the error messages of failed runs to Dagu Console; choose what to report again in Settings to keep them, or choose Health only to send no run data"
+)
 
 // processStartedAt approximates when this process started.
 var processStartedAt = time.Now()
@@ -239,6 +244,9 @@ func (r *Reporter) levelChanged(level config.ReportLevel) {
 func (r *Reporter) run(ctx context.Context) {
 	defer close(r.done)
 	defer r.events.close(ctx)
+	if r.monitoring.savedAsRuns(ctx) {
+		logger.Warn(ctx, warnSavedRuns)
+	}
 	// A record that cannot be read leaves the last level reported unknown,
 	// and no report then says that reporting stopped.
 	r.reported, _ = r.monitoring.reportedLevel(ctx)

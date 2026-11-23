@@ -706,20 +706,23 @@ cloud:
 		require.True(t, cfg.Cloud.Report.Reports())
 	})
 
-	// Run status comes with why runs failed.
+	// Run status comes with why runs failed, which a server set to runs
+	// did not send before, so loading warns until the setting says errors.
 	t.Run("RunsIsErrors", func(t *testing.T) {
 		t.Setenv("DAGU_CLOUD_REPORT", "runs")
-		report := testLoad(t).Cloud.Report
-		require.Equal(t, ReportErrors, report)
-		require.True(t, report.ReportsRuns())
+		cfg := testLoad(t)
+		require.Equal(t, ReportErrors, cfg.Cloud.Report)
+		require.True(t, cfg.Cloud.Report.ReportsRuns())
+		assert.Contains(t, strings.Join(cfg.Warnings, "\n"), warnCloudReportRuns)
 	})
 
 	t.Run("Errors", func(t *testing.T) {
 		t.Setenv("DAGU_CLOUD_REPORT", "errors")
-		report := testLoad(t).Cloud.Report
-		require.Equal(t, ReportErrors, report)
-		require.True(t, report.Reports())
-		require.True(t, report.ReportsRuns(), "the errors level reports runs too")
+		cfg := testLoad(t)
+		require.Equal(t, ReportErrors, cfg.Cloud.Report)
+		require.True(t, cfg.Cloud.Report.Reports())
+		require.True(t, cfg.Cloud.Report.ReportsRuns(), "the errors level reports runs too")
+		assert.NotContains(t, strings.Join(cfg.Warnings, "\n"), warnCloudReportRuns)
 	})
 
 	t.Run("Env", func(t *testing.T) {

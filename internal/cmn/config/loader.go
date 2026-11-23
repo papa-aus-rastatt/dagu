@@ -2013,9 +2013,17 @@ func (l *ConfigLoader) loadLicenseConfig(cfg *Config, def Definition) {
 	cfg.License.ServerName = def.License.ServerName
 }
 
+// warnCloudReportRuns tells an administrator who set cloud.report to runs,
+// which once kept error messages back, that it now sends them.
+const warnCloudReportRuns = `cloud.report "runs" now also sends the error messages of failed runs to Dagu Console; set it to "errors" to keep them, or "health" to send no run data`
+
 func (l *ConfigLoader) loadCloudConfig(cfg *Config, def Definition) {
 	if def.Cloud != nil {
-		cfg.Cloud.Report = ReportLevel(strings.ToLower(strings.TrimSpace(def.Cloud.Report))).Normalized()
+		report := ReportLevel(strings.ToLower(strings.TrimSpace(def.Cloud.Report)))
+		if report == ReportRuns {
+			l.warnings = append(l.warnings, warnCloudReportRuns)
+		}
+		cfg.Cloud.Report = report.Normalized()
 		cfg.Cloud.RemoteAccess = RemoteAccessLevel(strings.ToLower(strings.TrimSpace(def.Cloud.RemoteAccess)))
 		cfg.Cloud.RunKey = strings.TrimSpace(def.Cloud.RunKey)
 	}

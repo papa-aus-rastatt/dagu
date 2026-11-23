@@ -75,6 +75,10 @@ type choice struct {
 	// ReportedLevel lets a restarted server know whether Dagu Console still
 	// expects reports from it.
 	ReportedLevel config.ReportLevel `json:"reported_level,omitempty"`
+
+	// savedRuns reports that Level was saved as runs. Saving the choice
+	// again stores errors instead.
+	savedRuns bool
 }
 
 type sentReport struct {
@@ -167,6 +171,16 @@ func (m *Monitoring) level(ctx context.Context) (config.ReportLevel, error) {
 	return c.Level, nil
 }
 
+// savedAsRuns reports whether the stored choice still says runs, which once
+// kept error messages back. It is false when configuration fixes the level.
+func (m *Monitoring) savedAsRuns(ctx context.Context) bool {
+	if m.configured != "" {
+		return false
+	}
+	c, err := m.load(ctx)
+	return err == nil && c.savedRuns
+}
+
 // reportedLevel returns the level of the last report sent, or empty when none
 // was recorded.
 func (m *Monitoring) reportedLevel(ctx context.Context) (config.ReportLevel, error) {
@@ -236,6 +250,7 @@ func (m *Monitoring) load(ctx context.Context) (choice, error) {
 	if err := json.Unmarshal(data, &c); err != nil {
 		return c, fmt.Errorf("failed to decode the report settings: %w", err)
 	}
+	c.savedRuns = c.Level == config.ReportRuns
 	c.Level, c.ReportedLevel = c.Level.Normalized(), c.ReportedLevel.Normalized()
 	return c, nil
 }
