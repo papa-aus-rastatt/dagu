@@ -8,7 +8,7 @@ import {
   LicenseMonitoringLevel,
 } from '@/api/v1/schema';
 import {
-  neverSent,
+  NeverSent,
   ReportingChoices,
   reportingChoice,
   type ReportingLevel,
@@ -191,7 +191,7 @@ export function ConnectSection({
               disabled={disabled || starting}
               className="sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0"
             />
-            <p className="text-xs text-muted-foreground">{ts(neverSent)}</p>
+            <NeverSent className="text-xs" />
           </>
         )}
         {accessConfigured ? (

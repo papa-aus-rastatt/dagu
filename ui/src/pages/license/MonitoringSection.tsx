@@ -99,7 +99,7 @@ export function MonitoringSection({
           </h2>
           <p className="text-xs text-muted-foreground">
             {ts(
-              "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails."
+              "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails."
             )}
           </p>
         </div>

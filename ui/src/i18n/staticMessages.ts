@@ -2798,17 +2798,18 @@ const baseEnglish = {
   'Choose what this server reports': 'Choose what this server reports',
   'Choose what to report': 'Choose what to report',
   'Dismiss monitoring notice': 'Dismiss monitoring notice',
-  "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails.":
-    "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails.",
+  "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails.":
+    "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails.",
   'What to report': 'What to report',
-  "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is.":
-    "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is.",
-  "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, full logs, or outputs, though an error message can show what a step printed.":
-    "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, full logs, or outputs, though an error message can show what a step printed.",
-  'Every report also carries what identifies and authenticates this server, as its license check-in does: the protocol version, license ID, server ID, and heartbeat secret, and which choice it was sent under. With run status, it also carries the reporter’s cursor and, after events were lost, the time they were lost from. Turning reporting off sends one last report that carries only what identifies and authenticates this server and the choice Off, so that Dagu Console shows monitoring as off.':
-    'Every report also carries what identifies and authenticates this server, as its license check-in does: the protocol version, license ID, server ID, and heartbeat secret, and which choice it was sent under. With run status, it also carries the reporter’s cursor and, after events were lost, the time they were lost from. Turning reporting off sends one last report that carries only what identifies and authenticates this server and the choice Off, so that Dagu Console shows monitoring as off.',
+  'Dagu version, OS, uptime, and scheduler state. On a paid plan or trial, also CPU, memory, and disk use.':
+    'Dagu version, OS, uptime, and scheduler state. On a paid plan or trial, also CPU, memory, and disk use.',
+  "Also each run's status and timing, schedules, queues, and the last 2 KB of each failed step's error. Secrets are masked, but an error can show what a step printed.":
+    "Also each run's status and timing, schedules, queues, and the last 2 KB of each failed step's error. Secrets are masked, but an error can show what a step printed.",
+  "Each report also carries this server's license ID, server ID, and heartbeat secret. Turning reporting off sends one last report saying so.":
+    "Each report also carries this server's license ID, server ID, and heartbeat secret. Turning reporting off sends one last report saying so.",
   'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.':
     'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.',
+  'Exactly what is sent': 'Exactly what is sent',
   'Health, run status, and error messages (recommended)':
     'Health, run status, and error messages (recommended)',
   'Health, run status, and error messages':
@@ -6053,17 +6054,18 @@ const baseChinese = {
   'Choose what this server reports': '选择此服务器报告的内容',
   'Choose what to report': '选择报告内容',
   'Dismiss monitoring notice': '关闭监控通知',
-  "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails.":
-    'Dagu Console 会在“服务器”页面显示此服务器的健康状态。同时报告运行状态时，工作流失败会通过电子邮件通知工作区的所有者和管理员。',
+  "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails.":
+    'Dagu Console 会显示此服务器的健康状态。如果同时发送运行信息，工作流失败时会通过电子邮件通知工作区的所有者和管理员。',
   'What to report': '要报告的内容',
-  "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is.":
-    '发送 Dagu 版本、操作系统、架构、进程启动时间、服务数量（持有调度器锁的调度器和已注册的协调器）、调度器最近一次运转的时间和是否已暂停、远程访问允许来自 Dagu Cloud 的调用做到什么程度，以及在付费方案或试用期间，这台机器的 CPU、内存和负载平均值，和数据目录所在磁盘的使用情况。',
-  "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, full logs, or outputs, though an error message can show what a step printed.":
-    '发送健康状态字段，以及每个结束的顶层 DAG 运行的状态，附带其失败步骤名称（最多 50 个）和触发方式，还会发送排队中、运行中或等待中的运行列表。每个运行以 DAG 名称、运行 ID、尝试 ID、状态、触发方式，以及排队、开始和结束时间的形式发送，并附带最多 200 个步骤，每个步骤包括名称、状态、开始和结束时间以及重试次数。失败的运行还会附带其失败原因：最多 5 个失败步骤和处理程序的错误消息，或运行本身的错误消息，每条从末尾起最多 2 KB。步骤的错误消息末尾可能包含其 stderr 的最后几行，其中工作流密钥的值会被遮蔽。还会发送每个已计划 DAG 的下次运行时间，以及其最近一次计划运行是否已启动；以及每个有运行的队列：其名称、等待中和运行中的运行数量、可同时运行的数量、下一个运行的排队时间，以及它因等待工作节点而无法启动时的原因。不发送参数、完整日志或输出，但错误消息中可能包含步骤打印的内容。',
-  'Every report also carries what identifies and authenticates this server, as its license check-in does: the protocol version, license ID, server ID, and heartbeat secret, and which choice it was sent under. With run status, it also carries the reporter’s cursor and, after events were lost, the time they were lost from. Turning reporting off sends one last report that carries only what identifies and authenticates this server and the choice Off, so that Dagu Console shows monitoring as off.':
-    '每次报告还会像许可证签到一样，携带识别和验证此服务器的信息：协议版本、许可证 ID、服务器 ID 和心跳密钥，以及发送时所选的报告内容。报告运行状态时，还会携带报告器的游标；如有事件丢失，还会携带事件开始丢失的时间。关闭报告时，会再发送最后一次报告，仅携带识别和验证此服务器的信息以及所选的“关闭”，以便 Dagu Console 显示监控已关闭。',
+  'Dagu version, OS, uptime, and scheduler state. On a paid plan or trial, also CPU, memory, and disk use.':
+    'Dagu 版本、操作系统、运行时长和调度器状态。付费方案或试用期间，还包括 CPU、内存和磁盘使用情况。',
+  "Also each run's status and timing, schedules, queues, and the last 2 KB of each failed step's error. Secrets are masked, but an error can show what a step printed.":
+    '另外发送每个运行的状态和时间、计划、队列，以及每个失败步骤错误消息的最后 2 KB。密钥会被遮盖，但错误消息可能包含步骤打印的内容。',
+  "Each report also carries this server's license ID, server ID, and heartbeat secret. Turning reporting off sends one last report saying so.":
+    '每个报告还包含此服务器的许可证 ID、服务器 ID 和心跳密钥。关闭报告时，会再发送最后一个报告说明这一点。',
   'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.':
     '从不发送：完整日志、输出、参数、环境变量、步骤命令、DAG YAML、计划表达式以及工作流密钥的值。',
+  'Exactly what is sent': '具体发送的内容',
   'Health, run status, and error messages (recommended)':
     '健康状态、运行状态和错误消息（推荐）',
   'Health, run status, and error messages': '健康状态、运行状态和错误消息',
@@ -9386,17 +9388,18 @@ const baseJapanese = {
   'Choose what this server reports': 'このサーバーが報告する内容を選択',
   'Choose what to report': '報告する内容を選択',
   'Dismiss monitoring notice': '監視の通知を閉じる',
-  "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails.":
-    'Dagu Console の「サーバー」ページにこのサーバーの状態が表示されます。実行状況も報告すると、ワークフローが失敗したときにワークスペースのオーナーと管理者にメールが届きます。',
+  "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails.":
+    'Dagu Console にこのサーバーのヘルスが表示されます。実行状況も送ると、ワークフローが失敗したときにワークスペースのオーナーと管理者にメールが届きます。',
   'What to report': '報告する内容',
-  "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is.":
-    'Dagu のバージョン、OS、アーキテクチャ、プロセスの開始時刻、サービス数（スケジューラーロックを保持しているスケジューラーと、登録済みのコーディネーター）、スケジューラーが最後に動作した時刻と一時停止中かどうか、リモートアクセスで Dagu Cloud からの呼び出しにどこまで許可しているか、そして有料プランまたはトライアル中は、マシンの CPU・メモリ・ロードアベレージと、データディレクトリのあるディスクの使用量を送信します。',
-  "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, full logs, or outputs, though an error message can show what a step printed.":
-    'ヘルスの項目に加えて、終了したトップレベルの DAG 実行ごとの状態を、失敗したステップ名（最大 50 件）と起動方法とともに送信し、キュー待ち・実行中・待機中の実行の一覧も送信します。各実行は DAG 名、実行 ID、試行 ID、状態、起動方法、キュー投入・開始・終了時刻として送信され、最大 200 件のステップもそれぞれ名前、状態、開始・終了時刻、リトライ回数として送信されます。失敗した実行には失敗理由も含まれます。失敗したステップとハンドラー（最大 5 件）のエラーメッセージ、または実行自体のエラーメッセージで、それぞれ末尾から最大 2 KB です。ステップのエラーの末尾には stderr の最後の数行が含まれることがあり、ワークフローのシークレットの値はマスクされます。スケジュールされた各 DAG の次回実行時刻と、直近の予定実行が開始されたかどうか、さらに実行を抱える各キューの名前、待ち中と実行中の件数、同時に実行できる数、次の実行がキューに入った時刻、ワーカー待ちで開始できない場合はその理由も送信します。パラメーター、ログ全体、出力は送信しませんが、エラーメッセージにはステップが出力した内容が含まれることがあります。',
-  'Every report also carries what identifies and authenticates this server, as its license check-in does: the protocol version, license ID, server ID, and heartbeat secret, and which choice it was sent under. With run status, it also carries the reporter’s cursor and, after events were lost, the time they were lost from. Turning reporting off sends one last report that carries only what identifies and authenticates this server and the choice Off, so that Dagu Console shows monitoring as off.':
-    'すべての報告には、ライセンスのチェックインと同じく、このサーバーを識別・認証する情報（プロトコルバージョン、ライセンス ID、サーバー ID、ハートビートのシークレット）と、送信時に選択されている報告内容も含まれます。実行状況を報告する場合は、報告の位置を示すカーソルと、イベントが失われたときはその開始時刻も含まれます。報告をオフにすると、このサーバーを識別・認証する情報と、選択された「オフ」だけを含む最後の報告を 1 回送信し、Dagu Console で監視がオフと表示されるようにします。',
+  'Dagu version, OS, uptime, and scheduler state. On a paid plan or trial, also CPU, memory, and disk use.':
+    'Dagu のバージョン、OS、稼働時間、スケジューラーの状態。有料プランまたはトライアル中は CPU、メモリ、ディスクの使用状況も送ります。',
+  "Also each run's status and timing, schedules, queues, and the last 2 KB of each failed step's error. Secrets are masked, but an error can show what a step printed.":
+    '加えて、各実行の状態と時刻、スケジュール、キュー、失敗したステップのエラーの末尾 2 KB を送ります。シークレットはマスクされますが、エラーにはステップが出力した内容が含まれることがあります。',
+  "Each report also carries this server's license ID, server ID, and heartbeat secret. Turning reporting off sends one last report saying so.":
+    'どのレポートにも、このサーバーのライセンス ID、サーバー ID、ハートビートシークレットが含まれます。レポートをオフにすると、そのことを伝える最後のレポートを 1 回送ります。',
   'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.':
     '送信しないもの: ログ全体、出力、パラメータ、環境変数、ステップのコマンド、DAG の YAML、スケジュールの式、ワークフローのシークレットの値。',
+  'Exactly what is sent': '送信内容の詳細',
   'Health, run status, and error messages (recommended)':
     'ヘルス、実行状況、エラーメッセージ（推奨）',
   'Health, run status, and error messages':

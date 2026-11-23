@@ -33,25 +33,47 @@ export function reportingChoice(
     : LicenseMonitoringLevel.errors;
 }
 
-/** What each level sends, worded as RFC 002 lists it. */
+/** What each level sends, in short; the docs list every field. */
 const choices: { level: ReportingLevel; title: string; sends: string }[] = [
   {
     level: LicenseMonitoringLevel.health,
     title: 'Health only',
     sends:
-      "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is.",
+      'Dagu version, OS, uptime, and scheduler state. On a paid plan or trial, also CPU, memory, and disk use.',
   },
   {
     level: LicenseMonitoringLevel.errors,
     title: 'Health, run status, and error messages (recommended)',
     sends:
-      "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, full logs, or outputs, though an error message can show what a step printed.",
+      "Also each run's status and timing, schedules, queues, and the last 2 KB of each failed step's error. Secrets are masked, but an error can show what a step printed.",
   },
 ];
 
+/** Where the docs list every field each level sends. */
+const whatIsSentURL =
+  'https://docs.dagu.sh/overview/console-monitoring#what-is-sent';
+
 /** What no report sends, at any level. */
-export const neverSent =
+const neverSent =
   'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.';
+
+/** Says what no report sends, and links to every field that is sent. */
+export function NeverSent({ className }: { className?: string }) {
+  const { ts } = useI18n();
+  return (
+    <p className={cn('text-muted-foreground', className)}>
+      {ts(neverSent)}{' '}
+      <a
+        href={whatIsSentURL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline hover:no-underline"
+      >
+        {ts('Exactly what is sent')}
+      </a>
+    </p>
+  );
+}
 
 /** Lets an administrator pick a level, listing what each one sends. */
 export function ReportingChoices({
@@ -179,7 +201,7 @@ export function MonitoringDialog({
           </DialogTitle>
           <DialogDescription>
             {ts(
-              "Dagu Console shows this server's health on its Servers page. With run status, it also emails the workspace's owners and admins when a workflow fails."
+              "Dagu Console shows this server's health. If you also send runs, it emails the workspace's owners and admins when a workflow fails."
             )}
           </DialogDescription>
         </DialogHeader>
@@ -190,10 +212,10 @@ export function MonitoringDialog({
         />
         <p className="text-sm text-muted-foreground">
           {ts(
-            'Every report also carries what identifies and authenticates this server, as its license check-in does: the protocol version, license ID, server ID, and heartbeat secret, and which choice it was sent under. With run status, it also carries the reporter’s cursor and, after events were lost, the time they were lost from. Turning reporting off sends one last report that carries only what identifies and authenticates this server and the choice Off, so that Dagu Console shows monitoring as off.'
+            "Each report also carries this server's license ID, server ID, and heartbeat secret. Turning reporting off sends one last report saying so."
           )}
         </p>
-        <p className="text-sm text-muted-foreground">{ts(neverSent)}</p>
+        <NeverSent className="text-sm" />
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}
