@@ -230,7 +230,7 @@ func testedDAGPath(testFile, dag string) (string, *Finding) {
 		if !filepath.IsAbs(dag) {
 			dag = filepath.Join(filepath.Dir(testFile), dag)
 		}
-		if IsTestFile(dag) {
+		if spec.IsTestFile(dag) {
 			return "", &Finding{Source: "dag", Message: "names a test file, not a DAG"}
 		}
 		if _, err := os.Stat(dag); err != nil {
@@ -248,13 +248,6 @@ func testedDAGPath(testFile, dag string) (string, *Finding) {
 		}
 	}
 	return "", &Finding{Message: fmt.Sprintf("no DAG file %s.yaml or %[1]s.yml beside the test file; set dag", base)}
-}
-
-// IsTestFile reports whether the name of the file at path ends in
-// .test.yaml or .test.yml, the endings of a test file's name. DAG discovery
-// and lookup skip the same files.
-func IsTestFile(path string) bool {
-	return spec.IsTestFile(path)
 }
 
 // loadFindings returns one finding for each error a DAG load joined.
