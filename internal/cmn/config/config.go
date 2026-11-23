@@ -288,12 +288,22 @@ const (
 	ReportOff ReportLevel = "off"
 	// ReportHealth reports the server's version and which services run.
 	ReportHealth ReportLevel = "health"
-	// ReportRuns also reports DAG-run status changes.
-	ReportRuns ReportLevel = "runs"
-	// ReportErrors also reports why DAG runs failed: each failed step's
-	// error message.
+	// ReportErrors also reports DAG-run status changes and why runs failed:
+	// each failed step's error message.
 	ReportErrors ReportLevel = "errors"
+	// ReportRuns is accepted and read as ReportErrors: a run's status comes
+	// with why it failed.
+	ReportRuns ReportLevel = "runs"
 )
+
+// Normalized returns the level as reports go by it: ReportErrors for
+// ReportRuns, the level itself otherwise.
+func (l ReportLevel) Normalized() ReportLevel {
+	if l == ReportRuns {
+		return ReportErrors
+	}
+	return l
+}
 
 // Reports reports whether the level sends anything.
 func (l ReportLevel) Reports() bool {

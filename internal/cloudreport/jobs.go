@@ -17,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dagucloud/dagu/v2/internal/cmn/config"
 	"github.com/dagucloud/dagu/v2/internal/cmn/logger"
 	"github.com/dagucloud/dagu/v2/internal/cmn/logger/tag"
 	"github.com/dagucloud/dagu/v2/internal/ir"
@@ -82,8 +81,6 @@ type JobReports struct {
 	// address, empty for the production one.
 	RunKey   string
 	CloudURL string
-	// Level is runs or errors; at runs a finish carries no error messages.
-	Level config.ReportLevel
 	// KeepTrigger sends the run's trigger. Without it a report carries
 	// none, since a job started from the command line is rarely started by
 	// a person, and Dagu Console shows the platform the run ran in instead.
@@ -336,9 +333,6 @@ func (r *jobReporter) finishedRequest(status *ir.DAGRunStatus) *jobRequest {
 	run := newFinishedRun(status, r.now())
 	if !r.reports.KeepTrigger {
 		run.TriggerType = ""
-	}
-	if r.reports.Level != config.ReportErrors {
-		run.Errors = nil
 	}
 	return &jobRequest{Protocol: jobProtocol, Finished: &jobFinished{finishedRun: run, jobPlace: r.place}}
 }

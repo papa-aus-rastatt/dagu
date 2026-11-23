@@ -37,30 +37,35 @@ func TestMonitoringChoice(t *testing.T) {
 	assert.Equal(t, Status{Level: config.ReportOff}, status)
 
 	require.NoError(t, m.DismissNotice(t.Context()))
-	require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportHealth))
 
 	// A restarted server keeps the choice.
 	status, err = NewMonitoring("", filemonitor.NewStateStore(path)).Status(t.Context())
 	require.NoError(t, err)
-	assert.Equal(t, Status{Level: config.ReportRuns, Chosen: true, NoticeDismissed: true, ErrorsOffered: true}, status)
+	assert.Equal(t, Status{Level: config.ReportHealth, Chosen: true, NoticeDismissed: true}, status)
 }
 
-// A level chosen before servers could send error messages was chosen without
-// them, so they are offered until the notice is dismissed.
-func TestMonitoringOffersErrorsToAnEarlierChoice(t *testing.T) {
+// Run status comes with why runs failed: runs, chosen now or saved before,
+// configured or not, is errors.
+func TestMonitoringReadsRunsAsErrors(t *testing.T) {
 	t.Parallel()
 
 	path := filepath.Join(t.TempDir(), "report-settings.json")
-	require.NoError(t, os.WriteFile(path, []byte(`{"level":"runs"}`), 0o600))
+	require.NoError(t, os.WriteFile(path, []byte(`{"level":"runs","errors_offered":true}`), 0o600))
 	m := NewMonitoring("", filemonitor.NewStateStore(path))
 	status, err := m.Status(t.Context())
 	require.NoError(t, err)
-	assert.False(t, status.ErrorsOffered)
+	assert.Equal(t, Status{Level: config.ReportErrors, Chosen: true}, status, "a level saved as runs")
 
-	require.NoError(t, m.DismissErrorsNotice(t.Context()))
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportHealth))
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
 	status, err = m.Status(t.Context())
 	require.NoError(t, err)
-	assert.Equal(t, Status{Level: config.ReportRuns, Chosen: true, ErrorsOffered: true}, status)
+	assert.Equal(t, config.ReportErrors, status.Level, "runs chosen")
+
+	status, err = NewMonitoring(config.ReportRuns, nil).Status(t.Context())
+	require.NoError(t, err)
+	assert.Equal(t, Status{Level: config.ReportErrors, Configured: true}, status, "runs configured")
 }
 
 // A level set in configuration is fixed; the stored choice is never read, so
@@ -70,9 +75,8 @@ func TestMonitoringConfigured(t *testing.T) {
 
 	m := NewMonitoring(config.ReportHealth, nil)
 
-	require.ErrorIs(t, m.SetLevel(t.Context(), config.ReportRuns), ErrLevelConfigured)
+	require.ErrorIs(t, m.SetLevel(t.Context(), config.ReportErrors), ErrLevelConfigured)
 	require.NoError(t, m.DismissNotice(t.Context()))
-	require.NoError(t, m.DismissErrorsNotice(t.Context()))
 	status, err := m.Status(t.Context())
 	require.NoError(t, err)
 	assert.Equal(t, Status{Level: config.ReportHealth, Configured: true}, status)
@@ -103,7 +107,7 @@ func TestMonitoringAnnouncesInSaveOrder(t *testing.T) {
 	go func() { first <- m.SetLevel(t.Context(), config.ReportOff) }()
 	<-announcing
 	second := make(chan error, 1)
-	go func() { second <- m.SetLevel(t.Context(), config.ReportRuns) }()
+	go func() { second <- m.SetLevel(t.Context(), config.ReportErrors) }()
 	select {
 	case err := <-second:
 		t.Fatalf("runs was chosen while off was still being announced: %v", err)
@@ -113,10 +117,10 @@ func TestMonitoringAnnouncesInSaveOrder(t *testing.T) {
 	require.NoError(t, <-first)
 	require.NoError(t, <-second)
 
-	assert.Equal(t, []config.ReportLevel{config.ReportOff, config.ReportRuns}, announced)
+	assert.Equal(t, []config.ReportLevel{config.ReportOff, config.ReportErrors}, announced)
 	status, err := m.Status(t.Context())
 	require.NoError(t, err)
-	assert.Equal(t, config.ReportRuns, status.Level)
+	assert.Equal(t, config.ReportErrors, status.Level)
 }
 
 func TestMonitoringUnknownLevel(t *testing.T) {
@@ -212,7 +216,7 @@ func TestReportFollowsLevel(t *testing.T) {
 	dir.emit(eventstore.TypeDAGRunRunning, run("etl", "run-2", ir.Running))
 	dir.statuses.set(run("etl", "run-2", ir.Running))
 
-	require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
 	chosen := nextReport(t, clock, console)
 	assert.Equal(t, finishedReport{}, decodeFinished(t, chosen), "runs that finished before runs was chosen are left out")
 	assert.Equal(t, []string{"run-2"}, decodeActive(t, chosen).ids(t))
@@ -231,7 +235,7 @@ func TestReportFollowsLevel(t *testing.T) {
 	assertNoRuns(t, nextReport(t, clock, console))
 	assertLeaseFree(t, dir)
 
-	require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
+	require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
 	assert.Equal(t, finishedReport{}, decodeFinished(t, nextReport(t, clock, console)),
 		"runs that finished at health are left out")
 
@@ -298,10 +302,10 @@ func TestReportStartBelowRuns(t *testing.T) {
 				r.Stop()
 				_, clock = newEventReporter(t, console.credentials, dir, testClockStart.Add(tc.later))
 			} else {
-				require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
+				require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
 			}
 			report := nextReport(t, clock, console)
-			assert.Equal(t, config.ReportRuns, decodeReport(t, report).Level)
+			assert.Equal(t, config.ReportErrors, decodeReport(t, report).Level)
 			assert.Nil(t, decodeFinished(t, report).ids(t))
 			assert.Nil(t, decodeFinished(t, report).Gap)
 		})
@@ -350,7 +354,7 @@ func TestReportBelowRunsWithoutLease(t *testing.T) {
 			if tc.configured != "" {
 				_, clock = newEventReporter(t, console.credentials, dir, testClockStart)
 			} else {
-				require.NoError(t, m.SetLevel(t.Context(), config.ReportRuns))
+				require.NoError(t, m.SetLevel(t.Context(), config.ReportErrors))
 			}
 			assert.Nil(t, decodeFinished(t, nextReport(t, clock, console)).ids(t))
 		})

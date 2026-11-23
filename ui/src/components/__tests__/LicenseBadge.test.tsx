@@ -63,11 +63,10 @@ const connected: Partial<LicenseStatus> = {
 const minutesAgo = (minutes: number) =>
   new Date(now.getTime() - minutes * 60_000).toISOString();
 const reporting = (lastReportAt?: string): LicenseMonitoring => ({
-  level: LicenseMonitoringLevel.runs,
+  level: LicenseMonitoringLevel.errors,
   configured: false,
   chosen: true,
   noticeDismissed: false,
-  errorsOffered: false,
   lastReportAt,
 });
 
@@ -336,7 +335,8 @@ describe('sidebar license line', () => {
     const tooltip = await screen.findByRole('tooltip');
     await waitFor(() =>
       expect(tooltip).toHaveTextContent(
-        'Monitoring' + 'Health and run status, last report 9 minutes ago'
+        'Monitoring' +
+          'Health, run status, and error messages, last report 9 minutes ago'
       )
     );
     expect(sidebarLink()).toHaveTextContent(/^Team plan · acme$/);

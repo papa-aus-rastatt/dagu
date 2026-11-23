@@ -2015,7 +2015,7 @@ func (l *ConfigLoader) loadLicenseConfig(cfg *Config, def Definition) {
 
 func (l *ConfigLoader) loadCloudConfig(cfg *Config, def Definition) {
 	if def.Cloud != nil {
-		cfg.Cloud.Report = ReportLevel(strings.ToLower(strings.TrimSpace(def.Cloud.Report)))
+		cfg.Cloud.Report = ReportLevel(strings.ToLower(strings.TrimSpace(def.Cloud.Report))).Normalized()
 		cfg.Cloud.RemoteAccess = RemoteAccessLevel(strings.ToLower(strings.TrimSpace(def.Cloud.RemoteAccess)))
 		cfg.Cloud.RunKey = strings.TrimSpace(def.Cloud.RunKey)
 	}

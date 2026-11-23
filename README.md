@@ -232,9 +232,9 @@ Connect your Dagu servers to [Dagu Console](https://console.dagu.sh) and see all
   <img src="./assets/images/readme-console-overview.png" width="720" alt="Dagu Console Overview showing two of three servers reporting, failures today, open alerts including a server that stopped reporting, and the 7-day success rate.">
 </div>
 
-- **Opt-in:** a server reports nothing until an administrator turns monitoring on in **Settings**, or sets `cloud.report: runs`.
+- **Opt-in:** a server reports nothing until an administrator turns monitoring on in **Settings**, or sets `cloud.report: errors`.
 - **Outbound only:** the server reports over HTTPS every 60 seconds, or every 5 minutes on the free tier. No inbound port and no VPN.
-- **Metadata only:** run status, timing, and failed step names. Logs, outputs, parameters, and secrets are never sent, and the server shows the exact JSON it last sent.
+- **No logs:** run status, timing, failed step names, and the end of each failed step's error, with secrets masked. Full logs, outputs, parameters, and secrets are never sent, and the server shows the exact JSON it last sent.
 
 Workflows keep running on your servers whether or not Dagu Console can be reached. Monitoring is in beta. It is free for one server on Dagu v2.19.2 or later, with lower limits; a Team or Pro plan, or a trial, covers every licensed server. See [Monitoring](https://docs.dagu.sh/overview/console-monitoring).
 

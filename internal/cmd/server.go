@@ -432,8 +432,8 @@ func startCloudAccess(ctx *Context, access *cloudaccess.Service, server *fronten
 const cloudReportLeaseStaleThreshold = time.Minute
 
 // cloudReportEvents configures the DAG runs that reports to Dagu Console carry
-// at the runs level: finished runs from the event store, and runs in progress
-// followed through it. A reporter below runs uses them only to discard where
+// at the errors level: finished runs from the event store, and runs in progress
+// followed through it. A reporter below errors uses them only to discard where
 // they stopped being reported. It configures none while the event store is
 // disabled.
 func cloudReportEvents(ctx *Context) cloudreport.Events {

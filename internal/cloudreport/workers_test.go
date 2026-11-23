@@ -61,12 +61,12 @@ func TestReportCarriesWorkers(t *testing.T) {
 		wantList  string
 		wantTotal string
 	}{
-		{"Runs", config.ReportRuns, coordinator, &stubWorkers{records: records}, false, list, "2"},
+		{"Runs", config.ReportErrors, coordinator, &stubWorkers{records: records}, false, list, "2"},
 		{"Health", config.ReportHealth, coordinator, &stubWorkers{records: records}, false, "", "2"},
-		{"NoWorkers", config.ReportRuns, coordinator, &stubWorkers{}, false, "[]", "0"},
-		{"FreeMonitoring", config.ReportRuns, coordinator, &stubWorkers{records: records}, true, "", ""},
-		{"NoCoordinator", config.ReportRuns, &fakeRegistry{}, &stubWorkers{records: records}, false, "", ""},
-		{"Unreadable", config.ReportRuns, coordinator, &stubWorkers{err: errors.New("unavailable")}, false, "", ""},
+		{"NoWorkers", config.ReportErrors, coordinator, &stubWorkers{}, false, "[]", "0"},
+		{"FreeMonitoring", config.ReportErrors, coordinator, &stubWorkers{records: records}, true, "", ""},
+		{"NoCoordinator", config.ReportErrors, &fakeRegistry{}, &stubWorkers{records: records}, false, "", ""},
+		{"Unreadable", config.ReportErrors, coordinator, &stubWorkers{err: errors.New("unavailable")}, false, "", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -95,7 +95,7 @@ func TestReportBoundsWorkerBytes(t *testing.T) {
 		serviceregistry.ServiceNameCoordinator: {{ID: "c1"}},
 	}}
 
-	health := firstReportHealth(t, config.ReportRuns, coordinator, &stubWorkers{records: records}, false)
+	health := firstReportHealth(t, config.ReportErrors, coordinator, &stubWorkers{records: records}, false)
 	assert.JSONEq(t, "100", string(health["workers_total"]))
 	assert.LessOrEqual(t, len(health["workers"]), maxWorkersBytes+1)
 	var workers []workerHealth

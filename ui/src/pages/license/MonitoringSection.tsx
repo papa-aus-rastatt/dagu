@@ -65,8 +65,7 @@ export function MonitoringSection({
     monitoring !== undefined && monitoring.level !== LicenseMonitoringLevel.off;
   const stale = monitoringStale(monitoring, now);
   const runsPaused =
-    (monitoring?.level === LicenseMonitoringLevel.runs ||
-      monitoring?.level === LicenseMonitoringLevel.errors) &&
+    monitoring?.level === LicenseMonitoringLevel.errors &&
     monitoring.runsPausedUntil !== undefined &&
     dayjs(monitoring.runsPausedUntil).valueOf() > now;
 

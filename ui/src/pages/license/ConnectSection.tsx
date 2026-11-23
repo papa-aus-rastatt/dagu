@@ -10,6 +10,7 @@ import {
 import {
   neverSent,
   ReportingChoices,
+  reportingChoice,
   type ReportingLevel,
 } from '@/components/MonitoringDialog';
 import { Button } from '@/components/ui/button';
@@ -111,7 +112,7 @@ export function ConnectSection({
       ? monitoring.level
       : undefined;
   useEffect(() => {
-    if (chosen) setReport(chosen);
+    if (chosen) setReport(reportingChoice(chosen));
   }, [chosen]);
   const pending = status?.state === LicenseConnectStatusState.pending;
   const configured = monitoring?.configured ? monitoring.level : undefined;

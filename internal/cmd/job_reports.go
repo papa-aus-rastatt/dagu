@@ -57,7 +57,6 @@ func jobReports(ctx *Context, run jobRun) *cloudreport.JobReports {
 	return &cloudreport.JobReports{
 		RunKey:      key,
 		CloudURL:    ctx.Config.License.CloudURL,
-		Level:       level,
 		KeepTrigger: run.keepTrigger,
 		Version:     config.Version,
 	}

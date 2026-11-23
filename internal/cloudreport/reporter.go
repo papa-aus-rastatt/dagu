@@ -132,14 +132,14 @@ type Reporter struct {
 // unless resources is nil or the license is on free monitoring, whose Dagu
 // Console keeps none of it, how busy the machine is, and, unless workers is
 // nil or the license is on free monitoring, how many distributed workers
-// send heartbeats; and also, at runs, the finished and in-progress DAG runs
+// send heartbeats; and also, at errors, the finished and in-progress DAG runs
 // that events configures, the scheduled DAGs with what came of their latest
 // slots, the queues that queues reads, and those workers. Schedules are sent
 // by the process that reports the events. Choosing off stops a report in
 // flight. Finished runs are sent even while Dagu Console pauses storing
 // them; monitoring shows until when.
 //
-// Runs that finish below runs are never sent, even when runs is chosen again
+// Runs that finish below errors are never sent, even when errors is chosen again
 // after a restart. When Dagu Console answers that the server's license
 // changed, refresh checks in for it, at most every five minutes.
 //
@@ -646,7 +646,7 @@ type health struct {
 	// Workers are the distributed workers with a fresh heartbeat, up to
 	// maxWorkers, and WorkersTotal counts them all. Both are left out on
 	// free monitoring and while the workers are unknown; Workers is also
-	// left out below runs.
+	// left out below errors.
 	Workers      []workerHealth `json:"workers,omitzero"`
 	WorkersTotal *int           `json:"workers_total,omitempty"`
 }

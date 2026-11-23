@@ -220,7 +220,7 @@ func mcpURL(consoleURL string) string {
 
 var reportFlag = commandLineFlag{
 	name:  "report",
-	usage: "What this server reports to Dagu Console once connected: errors, runs, health, or off (asked when omitted)",
+	usage: "What this server reports to Dagu Console once connected: errors, health, or off, with runs read as errors (asked when omitted)",
 }
 
 // reportChoices are the levels a server connected from the CLI may report
@@ -230,7 +230,6 @@ var reportChoices = []struct {
 	label string
 }{
 	{config.ReportErrors, "Health, run status, and error messages (recommended)"},
-	{config.ReportRuns, "Health and run status"},
 	{config.ReportHealth, "Health only"},
 	{config.ReportOff, "Nothing"},
 }
@@ -243,13 +242,13 @@ func chooseReportLevel(in io.Reader, out io.Writer, flag string, configured conf
 		return configured, nil
 	}
 	if flag != "" {
-		level := config.ReportLevel(strings.ToLower(strings.TrimSpace(flag)))
+		level := config.ReportLevel(strings.ToLower(strings.TrimSpace(flag))).Normalized()
 		for _, choice := range reportChoices {
 			if choice.level == level {
 				return level, nil
 			}
 		}
-		return "", errors.New("--report must be one of errors, runs, health, or off")
+		return "", errors.New("--report must be one of errors, health, or off")
 	}
 	_, _ = fmt.Fprintln(out, "What should this server report to Dagu Console?")
 	for i, choice := range reportChoices {
@@ -267,7 +266,7 @@ func chooseReportLevel(in io.Reader, out io.Writer, flag string, configured conf
 	}
 	n, err := strconv.Atoi(answer)
 	if err != nil || n < 1 || n > len(reportChoices) {
-		return "", errors.New("choose 1, 2, 3, or 4")
+		return "", errors.New("choose 1, 2, or 3")
 	}
 	return reportChoices[n-1].level, nil
 }

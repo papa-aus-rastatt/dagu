@@ -35,8 +35,9 @@ import (
 // testRecordedAt is when the first event of a test is recorded.
 var testRecordedAt = time.Date(2026, 10, 10, 9, 0, 0, 0, time.UTC)
 
-// Reports carry the top-level runs that finished, with their steps, and the
-// runs in progress, without updates, the runs of sub-DAGs, errors, or logs.
+// Reports carry the top-level runs that finished, with their steps and why
+// they failed, and the runs in progress, without updates, the runs of
+// sub-DAGs, or logs.
 func TestReportRuns(t *testing.T) {
 	t.Parallel()
 
@@ -94,6 +95,7 @@ func TestReportRuns(t *testing.T) {
 			"workflow": "etl", "dag_run_id": "run-1", "attempt_id": "attempt-1", "status": "failed",
 			"trigger_type": "webhook", "queued_at": "2026-10-10T08:59:00Z", "started_at": "2026-10-10T09:00:00Z",
 			"finished_at": "2026-10-10T09:05:00Z", "failed_steps": ["load", "notify", "on_failure"],
+			"errors": [{"step": "load", "message": "db.internal: connection refused"}],
 			"steps": [
 				{"name": "extract", "status": "succeeded", "started_at": "2026-10-10T09:00:00Z", "finished_at": "2026-10-10T09:01:00Z", "retries": 0},
 				{"name": "load", "status": "failed", "started_at": "2026-10-10T09:01:00Z", "finished_at": "2026-10-10T09:04:00Z", "retries": 2},
@@ -128,8 +130,7 @@ func TestReportRuns(t *testing.T) {
 	assert.JSONEq(t, wantActive, decodeActive(t, next).json(t))
 }
 
-// At the errors level, a failed run also carries why it failed: the errors
-// of its failed steps without terminal escapes, each cut to its end, where
+// A failed run carries why it failed: the errors of its failed steps without terminal escapes, each cut to its end, where
 // the error says what went wrong; or the run's own error when no step says.
 // A run that partly succeeded carries none.
 func TestReportRunsWithErrors(t *testing.T) {
@@ -637,7 +638,7 @@ func TestReportRunsInProgressCarryTheirSteps(t *testing.T) {
 	runs := &fakeRuns{statuses: map[string]*ir.DAGRunStatus{"run-1": running, "run-3": &latest}}
 	events := dir.events()
 	events.Runs = runs
-	r := newReporter(console.credentials, nil, fixedLevel(config.ReportRuns))
+	r := newReporter(console.credentials, nil, fixedLevel(config.ReportErrors))
 	r.events = newEventFeed(events)
 	clock := startReporterAt(t.Context(), t, r, noJitter, testClockStart)
 	clock.wait()
@@ -743,7 +744,7 @@ func TestReportRunsUnreadable(t *testing.T) {
 	))
 	events := dir.events()
 	events.Reader = failingReader{}
-	r := newReporter(console.credentials, nil, fixedLevel(config.ReportRuns))
+	r := newReporter(console.credentials, nil, fixedLevel(config.ReportErrors))
 	r.events = newEventFeed(events)
 	clock := startReporterAt(ctx, t, r, noJitter, testClockStart)
 	clock.wait()
@@ -766,7 +767,7 @@ func TestReportWithoutEvents(t *testing.T) {
 		logger.WithWriter(&logs),
 		logger.WithQuiet(),
 	))
-	clock := startReporter(ctx, t, newReporter(console.credentials, nil, fixedLevel(config.ReportRuns)), noJitter)
+	clock := startReporter(ctx, t, newReporter(console.credentials, nil, fixedLevel(config.ReportErrors)), noJitter)
 	clock.wait()
 
 	for range 3 {
@@ -852,7 +853,7 @@ func TestReportActiveRebuildInBackground(t *testing.T) {
 	dir.statuses.set(run("etl", "run-1", ir.Running), run("etl", "run-2", ir.Queued), subRun())
 	release := dir.statuses.hold()
 	console := newFakeConsole(t)
-	r := newReporter(console.credentials, nil, fixedLevel(config.ReportRuns))
+	r := newReporter(console.credentials, nil, fixedLevel(config.ReportErrors))
 	r.events = newEventFeed(dir.events())
 	rebuilt := make(chan struct{}, 1)
 	clock := startReporterSpawning(t.Context(), t, r, noJitter, testClockStart, func(fn func()) {
@@ -893,7 +894,7 @@ func TestReportActiveRebuildRetries(t *testing.T) {
 		logger.WithWriter(&logs),
 		logger.WithQuiet(),
 	))
-	r := newReporter(console.credentials, nil, fixedLevel(config.ReportRuns))
+	r := newReporter(console.credentials, nil, fixedLevel(config.ReportErrors))
 	r.events = newEventFeed(dir.events())
 	clock := startReporterAt(ctx, t, r, noJitter, testClockStart)
 	clock.wait()
@@ -916,7 +917,7 @@ func TestReportRunsPaused(t *testing.T) {
 
 	dir := newEventDir(t)
 	console := newFakeConsole(t, consoleResponse{status: http.StatusOK, body: `{"runs_paused_until": "2026-10-11T00:00:00Z"}`})
-	m := fixedLevel(config.ReportRuns)
+	m := fixedLevel(config.ReportErrors)
 	r := newReporter(console.credentials, nil, m)
 	r.events = newEventFeed(dir.events())
 	clock := startReporterAt(t.Context(), t, r, noJitter, testClockStart)
@@ -1066,7 +1067,7 @@ func newEventReporter(
 	start time.Time,
 ) (*Reporter, *fakeClock) {
 	t.Helper()
-	return newEventReporterAt(t, credentials, dir, start, config.ReportRuns)
+	return newEventReporterAt(t, credentials, dir, start, config.ReportErrors)
 }
 
 // newEventReporterAt is newEventReporter reporting at level.

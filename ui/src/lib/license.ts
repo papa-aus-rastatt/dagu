@@ -125,7 +125,8 @@ export const remoteAccessLevelLabels: Record<LicenseRemoteAccessLevel, string> =
 export const monitoringLevelLabels: Record<LicenseMonitoringLevel, string> = {
   [LicenseMonitoringLevel.off]: 'Off',
   [LicenseMonitoringLevel.health]: 'Health only',
-  [LicenseMonitoringLevel.runs]: 'Health and run status',
+  // The server reads runs as errors, so it never reports runs.
+  [LicenseMonitoringLevel.runs]: 'Health, run status, and error messages',
   [LicenseMonitoringLevel.errors]: 'Health, run status, and error messages',
 };
 

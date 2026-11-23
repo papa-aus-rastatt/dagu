@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dagucloud/dagu/v2/internal/cmn/config"
 	"github.com/dagucloud/dagu/v2/internal/cmn/logger"
 	"github.com/dagucloud/dagu/v2/internal/ir"
 	"github.com/dagucloud/dagu/v2/internal/runtime/runstate"
@@ -179,7 +178,6 @@ func newJobAttempt(ctx context.Context, t *testing.T, console *fakeJobConsole, c
 	reports := &JobReports{
 		RunKey:   testRunKey,
 		CloudURL: console.server.URL,
-		Level:    config.ReportErrors,
 		Version:  "1.2.3",
 		Getenv:   githubEnv,
 		Hostname: func() (string, error) { return "runner-1", nil },
@@ -275,18 +273,16 @@ func TestJobRunReportsAsItGoes(t *testing.T) {
 	assert.Empty(t, console.calls, "nothing follows the finish")
 }
 
-// At the runs level a finish carries no error messages, and a trigger passed
-// on the command line is kept.
-func TestJobRunReportsKeepTheLevelAndAPassedTrigger(t *testing.T) {
+// A trigger passed on the command line is kept.
+func TestJobRunReportsKeepAPassedTrigger(t *testing.T) {
 	t.Parallel()
 	console := newFakeJobConsole(t)
 	attempt := newJobAttempt(t.Context(), t, console, newJobClock(), func(r *JobReports) {
-		r.Level, r.KeepTrigger = config.ReportRuns, true
+		r.KeepTrigger = true
 	})
 
 	require.NoError(t, attempt.RecordStatus(t.Context(), jobStatus(ir.Failed)))
 	finished := console.next(t).entry(t, "finished")
-	assert.NotContains(t, finished, "errors")
 	assert.Equal(t, "manual", finished["trigger_type"])
 	require.NoError(t, attempt.Close(t.Context()))
 }
@@ -528,7 +524,7 @@ func TestJobReportFitsDaguConsole(t *testing.T) {
 	for range maxRunSteps {
 		status.Nodes = append(status.Nodes, &ir.Node{Step: ir.Step{Name: name}, Status: ir.NodeFailed, Error: strings.Repeat("\u0001", 4096)})
 	}
-	r := &jobReporter{reports: &JobReports{Level: config.ReportErrors}, now: time.Now}
+	r := &jobReporter{reports: &JobReports{}, now: time.Now}
 
 	data, err := encodeJob(r.finishedRequest(&status))
 

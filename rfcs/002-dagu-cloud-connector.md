@@ -146,15 +146,16 @@ runs. A field is listed here, under its level, before any release sends it.
 Every report also carries what identifies and authenticates the server, as
 its license check-in does: the protocol version, license ID, server ID, and
 heartbeat secret, and the level it was sent at. A report at any level but `off`
-carries the time it was built, by the server's clock. At `runs` and `errors` it
-also carries the reporter's cursor and, after events were lost, the time they
+carries the time it was built, by the server's clock. At `errors` it also
+carries the reporter's cursor and, after events were lost, the time they
 were lost from.
 
 | Level | Fields | When |
 | --- | --- | --- |
 | `health` | Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, the remote access level and whether remote approvals are on, and, on a paid plan or trial, the latest sample of the machine's resources, or its container's when that has limits: logical CPUs and the CPU limit, average and peak CPU use since the last accepted report, load averages, memory use, and the use of the disks that hold the data and log directories, with their inodes. Also, on a paid plan or trial, how many distributed workers send heartbeats | Every report |
-| `runs` | The `health` fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. Also each scheduled DAG: its name, its next run, and its latest start-schedule slot that came due with what the scheduler did with it (dispatched, skipped as running, queued, done, succeeded, or overlapping, failed, planned, or missed while no scheduler ran). Also each queue that holds queued or running runs: its name, how many runs are waiting and how many are running, on the server and on distributed workers, how many may run at once, when the next run in line was queued, and why it cannot start when it waits for a worker. Also, on a paid plan or trial, each distributed worker: its ID, host, labels, pollers, last heartbeat, and the latest sample of its machine. From protocol 3, each run, scheduled DAG, and queue not defined in `config.yaml` also names its [project](#projects): its ID, name, and display name, and its Dagu Cloud project's ID when bound | Each finished run once, at most 500 and 512 KiB of them per report; the runs in progress with every report, at most 200 of them and a count of all; within 5 seconds of a failed, aborted, or rejected run or a change to the runs in progress. The scheduled DAGs with every report from the process that reports the runs, those whose slot did not run first, at most 500 and 128 KiB of them and a count of all. The queues with every report, read at most once a minute, those whose next run waits for a worker first, then those with room whose next run has not started, then full ones, then those with nothing queued, at most 256 of them and a count of all. The workers with every report, by ID, at most 256 and 64 KiB of them and a count of all |
-| `errors` | The `runs` fields, plus why each finished run failed: the error messages of its failed steps and handlers, at most 5, or the run's own error when no step has one. Each is sent without terminal escapes, at most 2048 bytes from its end. A command step's error ends with the last 1 KiB of its stderr; the values of workflow secrets are masked in it as in logs | With the finished run it belongs to |
+| `errors` | The `health` fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) how it was triggered, and why it failed, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. Why a run failed is the error messages of its failed steps and handlers, at most 5, or the run's own error when no step has one. Each is sent without terminal escapes, at most 2048 bytes from its end. A command step's error ends with the last 1 KiB of its stderr; the values of workflow secrets are masked in it as in logs. Also each scheduled DAG: its name, its next run, and its latest start-schedule slot that came due with what the scheduler did with it (dispatched, skipped as running, queued, done, succeeded, or overlapping, failed, planned, or missed while no scheduler ran). Also each queue that holds queued or running runs: its name, how many runs are waiting and how many are running, on the server and on distributed workers, how many may run at once, when the next run in line was queued, and why it cannot start when it waits for a worker. Also, on a paid plan or trial, each distributed worker: its ID, host, labels, pollers, last heartbeat, and the latest sample of its machine. From protocol 3, each run, scheduled DAG, and queue not defined in `config.yaml` also names its [project](#projects): its ID, name, and display name, and its Dagu Cloud project's ID when bound | Each finished run once, at most 500 and 512 KiB of them per report; the runs in progress with every report, at most 200 of them and a count of all; within 5 seconds of a failed, aborted, or rejected run or a change to the runs in progress. The scheduled DAGs with every report from the process that reports the runs, those whose slot did not run first, at most 500 and 128 KiB of them and a count of all. The queues with every report, read at most once a minute, those whose next run waits for a worker first, then those with room whose next run has not started, then full ones, then those with nothing queued, at most 256 of them and a count of all. The workers with every report, by ID, at most 256 and 64 KiB of them and a count of all |
+
+`runs` is read as `errors`: a run's status comes with why it failed.
 
 A run is reported unless its event has no valid status snapshot, or it names
 a DAG longer than 512 bytes or a run or attempt ID longer than 256 bytes,
@@ -164,31 +165,26 @@ which Dagu Cloud would not keep. Those runs are left out.
 joins the table above, under its level, before it is sent.
 
 **Never sent:** full logs, outputs, parameters, environment, step commands, DAG
-YAML, schedule expressions, and the values of workflow secrets. Error messages are sent only at
-`errors`.
+YAML, schedule expressions, and the values of workflow secrets.
 
-DAG names and step names are sent at `runs` and `errors`. An administrator who
-considers them sensitive chooses `health`, which sends neither. Error messages
+DAG names, step names, and error messages are sent at `errors`. Error messages
 often contain hosts, paths, or data the step printed; masking covers only the
 values of declared secrets. An administrator who would not send them chooses
-`runs`.
+`health`, which sends none of them.
 
 ### Choosing what to report
 
 | `cloud.report` | Sends |
 | --- | --- |
-| unset or `off` (default) | Nothing beyond the license check-in, except one report that says so, carrying only what identifies the server, when the level becomes `off` after a report at `health`, `runs`, or `errors` |
+| unset or `off` (default) | Nothing beyond the license check-in, except one report that says so, carrying only what identifies the server, when the level becomes `off` after a report at `health` or `errors` |
 | `health` | Dagu version, OS, architecture, start time, which services run, and whether the scheduler ticks or is paused |
-| `runs` | Also the status of finished runs and the runs in progress: DAG names, run IDs, status, triggers, times, failed step names; each scheduled DAG's next run and whether its latest scheduled run started; and each queue's name, its waiting and running runs, and whether its next run waits for a worker |
-| `errors` | Also the error messages of failed steps, cut to their end |
+| `errors` | Also the status of finished runs and the runs in progress: DAG names, run IDs, status, triggers, times, failed step names, and the error messages of failed steps, cut to their end; each scheduled DAG's next run and whether its latest scheduled run started; and each queue's name, its waiting and running runs, and whether its next run waits for a worker |
 
 - **Upgrading changes nothing.** A server licensed before reporting existed
   keeps sending only its license check-in.
 - **The admin chooses in the UI**, at a moment it is useful: right after the
   server connects to Dagu Cloud, or from a one-time notice on a server that
-  was already licensed. A server that chose run status before error
-  messages could be sent is offered them once, from the same kind of
-  notice. The dialog lists what each level sends and what is never sent,
+  was already licensed. The dialog lists what each level sends and what is never sent,
   before anything is. The choice persists in the data directory
   and applies without a restart.
 - **Config wins.** Set in configuration, `cloud.report` fixes the level for
@@ -199,8 +195,8 @@ values of declared secrets. An administrator who would not send them chooses
   report in flight; one last report then says that reporting is off, so that
   Dagu Cloud does not take the silence for an outage. Dagu Cloud can delete
   what a server reported.
-- **No catching up.** When the level drops below `runs` while the server
-  runs, the reporter moves its cursor to the newest event, so choosing `runs`
+- **No catching up.** When the level drops below `errors` while the server
+  runs, the reporter moves its cursor to the newest event, so choosing `errors`
   again never sends the runs that finished in between. It lists the runs in
   progress anew.
 - **The server decides.** Dagu Cloud cannot turn reporting on; it shows a
@@ -301,7 +297,7 @@ activation's credentials, as the heartbeat is.
 }
 ```
 
-`level` is the level the report was sent at, `health`, `runs`, or `errors`, or
+`level` is the level the report was sent at, `health` or `errors`, or
 `off` for the report that says reporting stopped.
 
 A scheduler count of zero means no scheduler holds the lock; leaving
@@ -359,7 +355,7 @@ events that end no run. `gap` comes after events were lost, with the time of
 the last acknowledged event, and always with a cursor; it repeats until the
 console acknowledges that cursor. Reporting continues from the newest event.
 
-At `runs` and `errors`, `health.queues` lists the queues that hold queued or
+At `errors`, `health.queues` lists the queues that hold queued or
 running runs: `name`; `queued`; `running`, on the server's processes and on
 distributed workers with a fresh lease, each run once; `max_active`, a
 global queue's configured maximum, at least 1, or 1 for a DAG's own queue;
@@ -378,7 +374,7 @@ cannot be read, rather than sent with counts that are short. A read
 serves reports for a minute.
 
 `health.workers_total` counts the distributed workers whose last heartbeat
-is at most 30 seconds old, and at `runs` and `errors`, `health.workers` lists
+is at most 30 seconds old, and at `errors`, `health.workers` lists
 them by ID, at most 256 and 64 KiB of them, so it can be shorter than the
 count:
 
@@ -411,11 +407,11 @@ report's list replaces the one before. A run also carries `steps` and
 once a minute. The steps of the runs listed share 512 KiB, first come first;
 a run past that, or one whose status could not be read, is sent without
 steps, which tells Dagu Cloud to keep the ones it has. Both are left out at `health`, and at
-`runs` until the reporter knows the runs in progress; a report without them
+`errors` until the reporter knows the runs in progress; a report without them
 says nothing about the runs in progress.
 
 **Reporting off.** When the level becomes `off` after a report at `health` or
-`runs`, whether chosen in the UI or set in configuration and applied at the
+`errors`, whether chosen in the UI or set in configuration and applied at the
 next start, the next report due is the last one:
 
 ```json
@@ -624,7 +620,7 @@ projects:
 - Each run, scheduled DAG, and queue that is not defined in `config.yaml`
   carries `project`: the local project's ID, name, and display name, and the
   Dagu Cloud project's ID when bound. Like DAG names, these are sent at
-  `runs` and `errors` only.
+  `errors` only.
 - Dagu Cloud keys a server's workflows by project ID and DAG name, so `etl`
   in two projects is two workflows. A protocol 2 report belongs to the
   server's default project.

@@ -191,7 +191,7 @@ func TestReportCarriesTheSchedules(t *testing.T) {
 
 	t.Run("runs", func(t *testing.T) {
 		t.Parallel()
-		got := report(t, config.ReportRuns, true, both)
+		got := report(t, config.ReportErrors, true, both)
 		assert.NotEmpty(t, got.SentAt)
 		assert.Equal(t, &schedulerHealth{LastTick: "2026-10-10T09:29:00Z", Paused: true}, got.Health.Scheduler)
 		require.NotNil(t, got.Schedules)
@@ -201,7 +201,7 @@ func TestReportCarriesTheSchedules(t *testing.T) {
 	})
 	t.Run("none scheduled", func(t *testing.T) {
 		t.Parallel()
-		got := report(t, config.ReportRuns, true, Scheduler{State: fakeSchedulerState{state: &schedulerstate.State{}}})
+		got := report(t, config.ReportErrors, true, Scheduler{State: fakeSchedulerState{state: &schedulerstate.State{}}})
 		require.NotNil(t, got.Schedules, "an empty list says none is scheduled")
 		assert.Empty(t, *got.Schedules)
 		assert.Equal(t, &schedulerHealth{}, got.Health.Scheduler)
@@ -215,18 +215,18 @@ func TestReportCarriesTheSchedules(t *testing.T) {
 	})
 	t.Run("without events", func(t *testing.T) {
 		t.Parallel()
-		assert.Nil(t, report(t, config.ReportRuns, false, both).Schedules)
+		assert.Nil(t, report(t, config.ReportErrors, false, both).Schedules)
 	})
 	t.Run("unreadable state", func(t *testing.T) {
 		t.Parallel()
-		got := report(t, config.ReportRuns, true, Scheduler{State: fakeSchedulerState{err: errors.New("unreadable")},
+		got := report(t, config.ReportErrors, true, Scheduler{State: fakeSchedulerState{err: errors.New("unreadable")},
 			Pause: fakePause{}})
 		assert.Nil(t, got.Health.Scheduler)
 		assert.Nil(t, got.Schedules)
 	})
 	t.Run("no scheduler", func(t *testing.T) {
 		t.Parallel()
-		got := report(t, config.ReportRuns, true, Scheduler{})
+		got := report(t, config.ReportErrors, true, Scheduler{})
 		assert.Nil(t, got.Health.Scheduler)
 		assert.Nil(t, got.Schedules)
 	})
@@ -242,7 +242,7 @@ func TestReportLeavesSchedulesToTheLeaseHolder(t *testing.T) {
 	require.NoError(t, holder.TryLock())
 	t.Cleanup(func() { _ = holder.Unlock() })
 	console := newFakeConsole(t)
-	r := newReporter(console.credentials, nil, fixedLevel(config.ReportRuns))
+	r := newReporter(console.credentials, nil, fixedLevel(config.ReportErrors))
 	r.events = newEventFeed(dir.events())
 	r.scheduler = Scheduler{State: fakeSchedulerState{state: &schedulerstate.State{}}}
 	clock := startReporterAt(t.Context(), t, r, noJitter, testClockStart)

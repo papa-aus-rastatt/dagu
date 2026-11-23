@@ -126,7 +126,7 @@ func TestStartCloudReport(t *testing.T) {
 		return &Context{Context: t.Context(), Config: cfg, LicenseManager: license.NewTestManager()}
 	}
 
-	for _, level := range []config.ReportLevel{"", config.ReportOff, config.ReportHealth, config.ReportRuns} {
+	for _, level := range []config.ReportLevel{"", config.ReportOff, config.ReportHealth, config.ReportErrors} {
 		t.Run("level "+string(level), func(t *testing.T) {
 			ctx := newContext(level)
 			reporter := startCloudReport(ctx, newCloudReportMonitoring(ctx), newCloudAccess(ctx), resource.NewService(ctx.Config))
@@ -161,7 +161,7 @@ func TestCloudReportEvents(t *testing.T) {
 		}
 	}
 
-	for _, level := range []config.ReportLevel{config.ReportRuns, "", config.ReportHealth, config.ReportOff} {
+	for _, level := range []config.ReportLevel{config.ReportErrors, "", config.ReportHealth, config.ReportOff} {
 		events := cloudReportEvents(newContext(level))
 		require.NotNil(t, events.Reader)
 		require.Equal(t, runs, events.Statuses)

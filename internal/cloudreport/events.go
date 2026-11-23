@@ -15,7 +15,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/dagucloud/dagu/v2/internal/cmn/config"
 	"github.com/dagucloud/dagu/v2/internal/cmn/dirlock"
 	"github.com/dagucloud/dagu/v2/internal/cmn/logger"
 	"github.com/dagucloud/dagu/v2/internal/cmn/logger/tag"
@@ -77,7 +76,7 @@ type Events struct {
 	// State persists which events Dagu Console has acknowledged.
 	State StateStore
 	// Stale persists, without the lease, that the position in State predates
-	// a period below runs, so that the next process to take the lease
+	// a period below errors, so that the next process to take the lease
 	// discards it. It must be set when Reader is.
 	Stale StateStore
 	// Lease lets one process at a time report the events of a shared data
@@ -279,16 +278,6 @@ func errorMessage(text string) string {
 		i++
 	}
 	return ellipsis + text[i:]
-}
-
-// withoutErrors returns runs as a level that sends no errors carries them.
-func withoutErrors(runs []finishedRun) []finishedRun {
-	out := make([]finishedRun, len(runs))
-	for i, run := range runs {
-		run.Errors = nil
-		out[i] = run
-	}
-	return out
 }
 
 // truncateBytes shortens s to at most n bytes without splitting a character.
@@ -765,9 +754,6 @@ func (f *eventFeed) fill(ctx context.Context, req *reportRequest) {
 	}
 	if f.batch != nil {
 		req.Finished = f.batch.finished
-		if req.Level != config.ReportErrors {
-			req.Finished = withoutErrors(req.Finished)
-		}
 		req.Cursor = f.batch.token
 	}
 	if !f.state.GapSince.IsZero() {
@@ -870,7 +856,7 @@ func (f *eventFeed) forget(ctx context.Context) {
 }
 
 // staleMark is the persisted record that the saved position predates a
-// period below runs.
+// period below errors.
 type staleMark struct {
 	Stale bool `json:"stale"`
 }

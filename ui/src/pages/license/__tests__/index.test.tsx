@@ -177,7 +177,6 @@ const unchosen: LicenseMonitoring = {
   configured: false,
   chosen: false,
   noticeDismissed: false,
-  errorsOffered: false,
 };
 
 function overview() {
@@ -1046,13 +1045,13 @@ describe('LicensePage', () => {
     it('keeps the level chosen before when the server connects again', async () => {
       const { post, approve } = approveAndConnect({
         ...unchosen,
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.health,
         chosen: true,
       });
       // The level chosen before is selected once the server's choice loads.
       await waitFor(() =>
         expect(
-          within(offer()).getByRole('radio', { name: 'Health and run status' })
+          within(offer()).getByRole('radio', { name: 'Health only' })
         ).toBeChecked()
       );
       await approve(() =>
@@ -1061,7 +1060,7 @@ describe('LicensePage', () => {
 
       expect(post).toHaveBeenCalledWith('/license/connect', {
         params: { query: { remoteNode: 'local' } },
-        body: { report: 'runs' },
+        body: { report: 'health' },
       });
     });
 
@@ -1336,18 +1335,17 @@ describe('LicensePage', () => {
 
     it('shows what the server reports and the last report', async () => {
       serveMonitoring({
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.errors,
         configured: false,
         chosen: true,
         noticeDismissed: false,
-        errorsOffered: false,
         lastReportAt: new Date().toISOString(),
         lastReport: '{"protocol":2,"heartbeat_secret":"[redacted]"}',
       });
 
       const card = await findMonitoringCard();
       expect(
-        await within(card).findByText('Health and run status')
+        await within(card).findByText('Health, run status, and error messages')
       ).toBeVisible();
       expect(within(card).getByText('Last report')).toBeVisible();
       expect(within(card).getByText(/ago/)).toBeVisible();
@@ -1378,21 +1376,15 @@ describe('LicensePage', () => {
         name: 'Choose what this server reports',
       });
       const health = within(dialog).getByRole('radio', { name: 'Health only' });
-      const runs = within(dialog).getByRole('radio', {
-        name: 'Health and run status',
-      });
       const errors = within(dialog).getByRole('radio', {
         name: 'Health, run status, and error messages (recommended)',
       });
       expect(errors).toBeChecked();
       expect(errors).toHaveAccessibleDescription(
-        "Sends everything Health and run status sends, plus why each failed run failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked."
+        "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. A failed run also carries why it failed: the error messages of up to 5 failed steps and handlers, or the run's own, each up to 2 KB from its end. A step's error can end with the last lines of its stderr, with the values of workflow secrets masked. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, logs, or outputs."
       );
       expect(health).toHaveAccessibleDescription(
         "Sends the Dagu version, OS, architecture, process start time, service counts (schedulers holding the scheduler lock, and registered coordinators), the scheduler's last tick and whether it is paused, how far remote access lets calls from Dagu Cloud go, and, on a paid plan or trial, the machine's CPU and memory use, load averages, and how full the data directory's disk is."
-      );
-      expect(runs).toHaveAccessibleDescription(
-        "Sends the health fields, plus the status of each top-level DAG run that finishes, with its failed step names (up to 50) and how it was triggered, and the list of runs queued, running, or waiting. Each run is sent as its DAG name, run ID, attempt ID, status, trigger, and queued, started, and finished times, with up to 200 of its steps, each as its name, status, start and finish times, and retry count. Also each scheduled DAG's next run, and whether its latest scheduled run started, and each queue holding runs: its name, how many runs are waiting and how many are running, how many may run at once, when the next run was queued, and why it cannot start when it waits for a worker. No parameters, logs, or outputs."
       );
       expect(dialog).toHaveTextContent(
         'Never sent: full logs, outputs, parameters, environment, step commands, DAG YAML, schedule expressions, and the values of workflow secrets.'
@@ -1512,11 +1504,10 @@ describe('LicensePage', () => {
 
     it('says when the server stopped reporting', async () => {
       serveMonitoring({
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.errors,
         configured: false,
         chosen: true,
         noticeDismissed: false,
-        errorsOffered: false,
         lastReportAt: new Date(Date.now() - 11 * 60_000).toISOString(),
       });
       const card = await findMonitoringCard();
@@ -1530,11 +1521,10 @@ describe('LicensePage', () => {
 
     it('shows when the last report arrived while reports arrive', async () => {
       serveMonitoring({
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.errors,
         configured: false,
         chosen: true,
         noticeDismissed: false,
-        errorsOffered: false,
         lastReportAt: new Date(Date.now() - 9 * 60_000).toISOString(),
       });
       const card = await findMonitoringCard();
@@ -1546,11 +1536,10 @@ describe('LicensePage', () => {
     it('says until when Dagu Console pauses storing finished runs', async () => {
       const until = new Date(Date.now() + 3 * 60 * 60_000);
       serveMonitoring({
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.errors,
         configured: false,
         chosen: true,
         noticeDismissed: false,
-        errorsOffered: false,
         lastReportAt: new Date().toISOString(),
         runsPausedUntil: until.toISOString(),
       });
@@ -1565,18 +1554,17 @@ describe('LicensePage', () => {
 
     it('does not mention a pause that has ended', async () => {
       serveMonitoring({
-        level: LicenseMonitoringLevel.runs,
+        level: LicenseMonitoringLevel.errors,
         configured: false,
         chosen: true,
         noticeDismissed: false,
-        errorsOffered: false,
         lastReportAt: new Date().toISOString(),
         runsPausedUntil: new Date(Date.now() - 60_000).toISOString(),
       });
       const card = await findMonitoringCard();
 
       expect(
-        await within(card).findByText('Health and run status')
+        await within(card).findByText('Health, run status, and error messages')
       ).toBeVisible();
       expect(
         within(card).queryByText(/Run history paused/)

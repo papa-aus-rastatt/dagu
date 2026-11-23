@@ -30,8 +30,8 @@ func jobContext(t *testing.T, cloud config.CloudConfig, logs *bytes.Buffer) *Con
 // localRun is a top-level run this machine runs itself.
 var localRun = jobRun{workerID: "local"}
 
-// A top-level run on this machine reports with its run key at errors unless
-// the config says otherwise.
+// A top-level run on this machine reports with its run key unless the config
+// sends no runs.
 func TestJobReportsForALocalRun(t *testing.T) {
 	t.Parallel()
 	var logs bytes.Buffer
@@ -41,11 +41,10 @@ func TestJobReportsForALocalRun(t *testing.T) {
 
 	require.NotNil(t, reports)
 	assert.Equal(t, testRunKey, reports.RunKey)
-	assert.Equal(t, config.ReportErrors, reports.Level)
 	assert.True(t, reports.KeepTrigger)
 
-	ctx.Config.Cloud.Report = config.ReportRuns
-	assert.Equal(t, config.ReportRuns, jobReports(ctx, localRun).Level)
+	ctx.Config.Cloud.Report = config.ReportErrors
+	assert.NotNil(t, jobReports(ctx, localRun))
 }
 
 // A run reports no job run without a key, at a level that sends no runs, or

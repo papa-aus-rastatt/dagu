@@ -706,11 +706,12 @@ cloud:
 		require.True(t, cfg.Cloud.Report.Reports())
 	})
 
-	t.Run("Runs", func(t *testing.T) {
+	// Run status comes with why runs failed.
+	t.Run("RunsIsErrors", func(t *testing.T) {
 		t.Setenv("DAGU_CLOUD_REPORT", "runs")
 		report := testLoad(t).Cloud.Report
-		require.Equal(t, ReportRuns, report)
-		require.True(t, report.Reports())
+		require.Equal(t, ReportErrors, report)
+		require.True(t, report.ReportsRuns())
 	})
 
 	t.Run("Errors", func(t *testing.T) {
@@ -808,7 +809,7 @@ func TestLoad_CloudRunKey(t *testing.T) {
 		t.Setenv("DAGU_LICENSE_CLOUD_URL", "https://console.example.com")
 		cfg := testLoad(t, WithService(ServiceAgent))
 		require.Equal(t, "drk_for_agent", cfg.Cloud.RunKey)
-		require.Equal(t, ReportRuns, cfg.Cloud.Report)
+		require.Equal(t, ReportErrors, cfg.Cloud.Report)
 		require.Equal(t, "https://console.example.com", cfg.License.CloudURL)
 	})
 }
