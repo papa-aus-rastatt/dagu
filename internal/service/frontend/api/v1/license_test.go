@@ -978,7 +978,8 @@ func TestLicenseMonitoring_LastReport(t *testing.T) {
 	assert.True(t, time.Date(2026, 10, 11, 0, 0, 0, 0, time.UTC).Equal(*monitoring.RunsPausedUntil))
 }
 
-// Changing the level is audited with the level it replaced.
+// Changing the level is audited with the level it replaced, and runs as the
+// errors level it is stored as.
 func TestLicenseMonitoring_Audit(t *testing.T) {
 	t.Parallel()
 
@@ -1000,18 +1001,21 @@ func TestLicenseMonitoring_Audit(t *testing.T) {
 
 	server.Client().Put("/api/v1/license/monitoring", map[string]string{"level": "health"}).
 		WithBearerToken(adminToken).ExpectStatus(http.StatusOK).Send(t)
+	server.Client().Put("/api/v1/license/monitoring", map[string]string{"level": "runs"}).
+		WithBearerToken(adminToken).ExpectStatus(http.StatusOK).Send(t)
 
 	var logs api.AuditLogsResponse
 	server.Client().Get("/api/v1/audit?category=system&action=cloud_report_update").
 		WithBearerToken(adminToken).ExpectStatus(http.StatusOK).Send(t).Unmarshal(t, &logs)
-	require.Len(t, logs.Entries, 1)
-	entry := logs.Entries[0]
-	assert.Equal(t, "admin", entry.Username)
-	require.NotNil(t, entry.Details)
-	var details map[string]any
-	require.NoError(t, json.Unmarshal([]byte(*entry.Details), &details))
-	assert.Equal(t, "health", details["level"])
-	assert.Equal(t, "off", details["previous_level"])
+	var changes [][2]any
+	for _, entry := range logs.Entries {
+		assert.Equal(t, "admin", entry.Username)
+		require.NotNil(t, entry.Details)
+		var details map[string]any
+		require.NoError(t, json.Unmarshal([]byte(*entry.Details), &details))
+		changes = append(changes, [2]any{details["previous_level"], details["level"]})
+	}
+	assert.ElementsMatch(t, [][2]any{{"off", "health"}, {"health", "errors"}}, changes)
 }
 
 // Choosing remote access when connecting sets the level MCP calls get once

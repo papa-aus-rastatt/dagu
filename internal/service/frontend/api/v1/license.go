@@ -378,7 +378,7 @@ func (a *API) setReportLevel(ctx context.Context, level config.ReportLevel) erro
 		return err
 	}
 	a.logAudit(ctx, audit.CategorySystem, "cloud_report_update", map[string]any{
-		"level":          level,
+		"level":          level.Normalized(),
 		"previous_level": previous.Level,
 	})
 	return nil
